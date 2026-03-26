@@ -1,141 +1,8 @@
-// import { useState } from "react";
 
-// export default function EmployeeRequestForm({ onAddRequest }) {
-//   const [formData, setFormData] = useState({
-//     employeeName: "",
-//     employeeId: "",
-//     department: "",
-//     leaveType: "Sick Leave",
-//     fromDate: "",
-//     toDate: "",
-//     reason: "",
-//   });
-
-//   const handleChange = (e) => {
-//     setFormData((prev) => ({
-//       ...prev,
-//       [e.target.name]: e.target.value,
-//     }));
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-
-//     const newRequest = {
-//       id: Date.now(),
-//       ...formData,
-//       status: "Pending",
-//     };
-
-//     onAddRequest(newRequest);
-
-//     setFormData({
-//       employeeName: "",
-//       employeeId: "",
-//       department: "",
-//       leaveType: "Sick Leave",
-//       fromDate: "",
-//       toDate: "",
-//       reason: "",
-//     });
-//   };
-
-//   return (
-//     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-//       <h2 className="text-xl font-semibold text-gray-800 mb-4">
-//         Apply Leave Request
-//       </h2>
-
-//       <form
-//         onSubmit={handleSubmit}
-//         className="grid grid-cols-1 md:grid-cols-2 gap-4"
-//       >
-//         <input
-//           type="text"
-//           name="employeeName"
-//           placeholder="Employee Name"
-//           value={formData.employeeName}
-//           onChange={handleChange}
-//           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-//           required
-//         />
-
-//         <input
-//           type="text"
-//           name="employeeId"
-//           placeholder="Employee ID"
-//           value={formData.employeeId}
-//           onChange={handleChange}
-//           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-//           required
-//         />
-
-//         <input
-//           type="text"
-//           name="department"
-//           placeholder="Department"
-//           value={formData.department}
-//           onChange={handleChange}
-//           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-//           required
-//         />
-
-//         <select
-//           name="leaveType"
-//           value={formData.leaveType}
-//           onChange={handleChange}
-//           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-//         >
-//           <option>Sick Leave</option>
-//           <option>Casual Leave</option>
-//           <option>Earned Leave</option>
-//           <option>Permission</option>
-//         </select>
-
-//         <input
-//           type="date"
-//           name="fromDate"
-//           value={formData.fromDate}
-//           onChange={handleChange}
-//           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-//           required
-//         />
-
-//         <input
-//           type="date"
-//           name="toDate"
-//           value={formData.toDate}
-//           onChange={handleChange}
-//           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-//           required
-//         />
-
-//         <textarea
-//           name="reason"
-//           placeholder="Reason"
-//           value={formData.reason}
-//           onChange={handleChange}
-//           rows="4"
-//           className="md:col-span-2 border border-gray-300 rounded-xl px-4 py-3 outline-none resize-none"
-//           required
-//         />
-
-//         <button
-//           type="submit"
-//           className="md:col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition"
-//         >
-//           Submit Request
-//         </button>
-//       </form>
-//     </div>
-//   );
-// }
-
-
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function EmployeeRequestForm({ onAddRequest }) {
+
   const [formData, setFormData] = useState({
     employeeName: "",
     employeeId: "",
@@ -146,6 +13,27 @@ export default function EmployeeRequestForm({ onAddRequest }) {
     reason: "",
   });
 
+  // 🔥 FETCH EMPLOYEE DATA (AUTO FILL)
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    console.log("USER ID:", userId);   // ✅ ADD THIS
+
+
+    fetch(`http://127.0.0.1:8000/api/leave/employee/${userId}/`)
+      .then(res => res.json())
+      .then(data => {
+          console.log("API DATA:", data);
+        setFormData(prev => ({
+
+          ...prev,
+          employeeName: data.name,
+          employeeId: data.employee_id,
+          department: data.department
+        }));
+      });
+  }, []);
+
+  // 🔥 HANDLE INPUT CHANGE
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -153,42 +41,45 @@ export default function EmployeeRequestForm({ onAddRequest }) {
     }));
   };
 
+  // 🔥 SUBMIT LEAVE
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const data = {
-    name: formData.employeeName,
-    employee_id: formData.employeeId,
-    department: formData.department,
-    leave_type: formData.leaveType,
-    from_date: formData.fromDate,
-    to_date: formData.toDate,
-    reason: formData.reason,
+    const data = {
+      user_id: localStorage.getItem("userId"),
+      leave_type: formData.leaveType,
+      from_date: formData.fromDate,
+      to_date: formData.toDate,
+      reason: formData.reason,
+    };
+
+    await fetch("http://127.0.0.1:8000/api/leave/apply/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    alert("Leave Applied Successfully ✅");
+
+    onAddRequest();
+
+    // 🔥 RESET ONLY FORM FIELDS (NOT EMPLOYEE DATA)
+    setFormData(prev => ({
+      ...prev,
+      leaveType: "Sick Leave",
+      fromDate: "",
+      toDate: "",
+      reason: "",
+    }));
   };
-
-  await fetch("http://127.0.0.1:8000/api/leave/apply/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  alert("Leave Applied Successfully ✅");
-    onAddRequest(); 
-  setFormData({
-    employeeName: "",
-    employeeId: "",
-    department: "",
-    leaveType: "Sick Leave",
-    fromDate: "",
-    toDate: "",
-    reason: "",
-  });
-};
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          {/* 🔥 ADD THIS LINE HERE */}
+    <h1>{formData.employeeName}</h1>
+
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
         Apply Leave Request
       </h2>
@@ -197,36 +88,38 @@ export default function EmployeeRequestForm({ onAddRequest }) {
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
       >
+
+        {/* Employee Name */}
         <input
           type="text"
           name="employeeName"
           placeholder="Employee Name"
           value={formData.employeeName}
-          onChange={handleChange}
+          readOnly
           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-          required
         />
 
+        {/* Employee ID */}
         <input
           type="text"
           name="employeeId"
           placeholder="Employee ID"
           value={formData.employeeId}
-          onChange={handleChange}
+          readOnly
           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-          required
         />
 
+        {/* Department */}
         <input
           type="text"
           name="department"
           placeholder="Department"
           value={formData.department}
-          onChange={handleChange}
+          readOnly
           className="border border-gray-300 rounded-xl px-4 py-3 outline-none"
-          required
         />
 
+        {/* Leave Type */}
         <select
           name="leaveType"
           value={formData.leaveType}
@@ -239,6 +132,7 @@ export default function EmployeeRequestForm({ onAddRequest }) {
           <option>Permission</option>
         </select>
 
+        {/* From Date */}
         <input
           type="date"
           name="fromDate"
@@ -248,6 +142,7 @@ export default function EmployeeRequestForm({ onAddRequest }) {
           required
         />
 
+        {/* To Date */}
         <input
           type="date"
           name="toDate"
@@ -257,6 +152,7 @@ export default function EmployeeRequestForm({ onAddRequest }) {
           required
         />
 
+        {/* Reason */}
         <textarea
           name="reason"
           placeholder="Reason"
@@ -267,6 +163,7 @@ export default function EmployeeRequestForm({ onAddRequest }) {
           required
         />
 
+        {/* Submit */}
         <button
           type="submit"
           className="md:col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition"

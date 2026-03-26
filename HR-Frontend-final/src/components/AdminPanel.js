@@ -1,40 +1,59 @@
 import { useEffect, useState } from "react";
 
-
 export default function AdminPanel() {
 
-  const [employees, setEmployees] = useState([]);
-  const [leaves, setLeaves] = useState([]);
+  const [summary, setSummary] = useState({
+    total: 0,
+    present: 0,
+    absent: 0,
+  });
 
   useEffect(() => {
 
-    // Employees API
-    fetch("http://127.0.0.1:8000/api/app1/list/")
+    fetch("http://127.0.0.1:8000/api/attendance/admin-dashboard/")
       .then(res => res.json())
-      .then(data => setEmployees(data.data || data))
-      .catch(err => console.log(err));
+      .then(data => {
 
-    // Leaves API
-    fetch("http://127.0.0.1:8000/api/leave/list/")
-      .then(res => res.json())
-      .then(data => setLeaves(data))
-      .catch(err => console.log(err));
+        console.log("🔥 ATTENDANCE DATA:", data);
+
+        if (!Array.isArray(data)) {
+          console.log("❌ Not array:", data);
+          return;
+        }
+
+        let present = 0;
+
+        data.forEach(emp => {
+          const status = (emp.today_status || "")
+            .toString()
+            .trim()
+            .toLowerCase();
+
+          console.log("STATUS:", status);
+
+          if (status === "present") {
+            present++;
+          }
+        });
+
+        console.log("✅ FINAL PRESENT:", present);
+
+        setSummary({
+          total: data.length,
+          present: present,
+          absent: data.length - present
+        });
+
+      })
+      .catch(err => console.log("ERROR:", err));
 
   }, []);
 
   return (
     <div>
-
-      <h2 className="text-xl font-bold mb-2">Employees</h2>
-      {employees.map(e => (
-        <p key={e.id}>{e.first_name} {e.last_name}</p>
-      ))}
-
-      <h2 className="text-xl font-bold mt-6 mb-2">Leaves</h2>
-      {leaves.map(l => (
-        <p key={l.id}>{l.name} - {l.status}</p>
-      ))}
-
+      <h2>Total: {summary.total}</h2>
+      <h2>Present: {summary.present}</h2>
+      <h2>Absent: {summary.absent}</h2>
     </div>
   );
 }

@@ -7,7 +7,7 @@ class AttendanceAdmin(admin.ModelAdmin):
     # ✅ Columns in admin table
     list_display = (
         'id',
-        'name',
+        'user_id',   # 🔥 changed
         'date',
         'check_in',
         'check_out'
@@ -15,10 +15,10 @@ class AttendanceAdmin(admin.ModelAdmin):
 
     # ✅ Search bar
     search_fields = (
-        'name',
+        'user_id',   # 🔥 changed
     )
 
-    # ✅ Filters (right side)
+    # ✅ Filters
     list_filter = (
         'date',
     )
