@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 const CandidateTable = () => {
@@ -9,68 +8,58 @@ const CandidateTable = () => {
     const userId = localStorage.getItem("userId");
     console.log("USER ID:", userId);
 
-const isAdmin = localStorage.getItem("isAdmin");
+    const isAdmin = localStorage.getItem("isAdmin");
 
-const url =
-  isAdmin === "true"
-    ? "http://127.0.0.1:8000/api/app1/employees/"
-    : `http://127.0.0.1:8000/api/app1/employees/?user_id=${userId}`;
+    const url =
+      isAdmin === "true"
+        ? "http://127.0.0.1:8000/api/app1/employees/"
+        : `http://127.0.0.1:8000/api/app1/employees/?user_id=${userId}`;
 
-fetch(url)
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        console.log("API DATA:", data); // debug
-        setCandidates(data); // important
+        console.log("API DATA:", data);
+        setCandidates(data);
       })
       .catch((err) => console.error(err));
   }, []);
 
   return (
-    <div className="bg-white rounded shadow p-4">
+    <div className="bg-white rounded shadow p-4 overflow-x-auto">
 
       {/* Header */}
-      {/* <div className="grid grid-cols-10 font-semibold text-sm border-b pb-2">
-        <div>First Name</div>
-        <div>Last Name</div>
-        <div>Email ID</div>
-        <div>Official Email</div>
-        <div>Status</div>
-        <div>Department</div>
-        <div>Source of Hire</div>
-        <div>UAN Number</div>
-        <div>PAN Card</div>
-        <div>Aadhaar</div>
-      </div> */}
-      <div className="grid grid-cols-10 font-semibold text-sm border-b pb-2">
-  <div>Emp ID</div>
-  <div>Name</div>
-  <div>Email</div>
-  <div>Phone</div>
-  <div>Department</div>
-  <div>Joining Date</div>
-  <div>Role</div>
-  <div>Aadhaar</div>
-  <div>PAN</div>
-  <div>City</div>
-</div>
+      <div className="grid grid-cols-10 gap-6 min-w-[1200px] font-semibold text-sm border-b pb-3">
+        <div className="px-3 whitespace-nowrap">Emp ID</div>
+        <div className="px-3 whitespace-nowrap">Name</div>
+        <div className="px-3 whitespace-nowrap">Email</div>
+        <div className="px-3 whitespace-nowrap">Phone</div>
+        <div className="px-3 whitespace-nowrap">Department</div>
+        <div className="px-3 whitespace-nowrap">Joining Date</div>
+        <div className="px-3 whitespace-nowrap">Role</div>
+        <div className="px-3 whitespace-nowrap">Aadhaar</div>
+        <div className="px-3 whitespace-nowrap">PAN</div>
+        <div className="px-3 whitespace-nowrap">City</div>
+      </div>
 
       {/* Data */}
       {candidates && candidates.length > 0 ? (
         candidates.map((c, index) => (
           <div
             key={index}
-            className="grid grid-cols-10 text-sm border-b py-2"
+            className="grid grid-cols-10 gap-6 min-w-[1200px] text-sm border-b py-3 hover:bg-gray-50"
           >
-           <div>{c.employee_id}</div>
-<div>{c.name}</div>
-<div>{c.email}</div>
-<div>{c.phone}</div>
-<div>{c.department}</div>
-<div>{c.date_of_joining}</div>
-<div>{c.role}</div>
-<div>{c.aadhaar}</div>
-<div>{c.pan}</div>
-<div>{c.city}</div>
+            <div className="px-3 whitespace-nowrap">{c.employee_id}</div>
+            <div className="px-3 whitespace-nowrap">{c.name}</div>
+            <div className="px-3 whitespace-nowrap">
+              {c.email}
+            </div>
+            <div className="px-3 whitespace-nowrap">{c.phone}</div>
+            <div className="px-3 whitespace-nowrap">{c.department}</div>
+            <div className="px-3 whitespace-nowrap">{c.date_of_joining}</div>
+            <div className="px-3 whitespace-nowrap">{c.role}</div>
+            <div className="px-3 whitespace-nowrap">{c.aadhaar}</div>
+            <div className="px-3 whitespace-nowrap">{c.pan}</div>
+            <div className="px-3 whitespace-nowrap">{c.city}</div>
           </div>
         ))
       ) : (
@@ -78,11 +67,8 @@ fetch(url)
           <p className="text-lg">No records found</p>
         </div>
       )}
-
     </div>
   );
 };
 
 export default CandidateTable;
-
-
