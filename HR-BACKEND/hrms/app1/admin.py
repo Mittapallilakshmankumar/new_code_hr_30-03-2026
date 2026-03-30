@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Candidate, Education, Experience
+from .models import Candidate, Education, Experience, Employee
 
 
 # 🔹 Education Inline (inside Candidate page)
@@ -100,7 +100,58 @@ class ExperienceAdmin(admin.ModelAdmin):
     search_fields = ('company_name', 'role')
 
 
+# class EmployeeAdmin(admin.ModelAdmin):
+#     list_display = (
+#         'id',
+#         'employee_id',
+#         'name',
+#         'email',
+#         'department',
+#         'role',
+#         'date_of_joining'
+#     )
+
+#     search_fields = ('name', 'email', 'employee_id')
+
+#     list_filter = ('role', 'department')
+
+#     ordering = ('-id',)
+class EmployeeAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'employee_id',
+        'name',
+        'email',
+        'department',
+        'role',
+        'date_of_joining'
+    )
+
+    search_fields = ('name', 'email', 'employee_id')
+
+    list_filter = ('role', 'department')
+
+    ordering = ('-id',)
+
+    # 🔥 ADD THIS BLOCK
+    fields = (
+        'employee_id',
+        'name',
+        'email',
+        'password',   # ✅ NOW IT WILL SHOW
+        'phone',
+        'department',
+        'date_of_joining',
+        'role',
+        'aadhaar',
+        'pan',
+        'city',
+        'skills'
+    )
+
+
 # ✅ Register all models
 admin.site.register(Candidate, CandidateAdmin)
 admin.site.register(Education, EducationAdmin)
 admin.site.register(Experience, ExperienceAdmin)
+admin.site.register(Employee, EmployeeAdmin)

@@ -103,20 +103,68 @@ def update_candidate(request, id):
 
 
 # ✅ APPROVE CANDIDATE → CREATE EMPLOYEE
+# @api_view(['POST'])
+# def approve_candidate(request, id):
+#     try:
+#         candidate = Candidate.objects.get(id=id)
+
+#         last_emp = Employee.objects.last()
+
+#         if last_emp and last_emp.employee_id:
+#             last_num = int(last_emp.employee_id.replace("ARCE", ""))
+#             new_num = last_num + 1
+#         else:
+#             new_num = 499
+
+#         emp_id = f"ARCE{new_num}"
+
+#         Employee.objects.create(
+#             employee_id=emp_id,
+#             name=candidate.first_name + " " + candidate.last_name,
+#             email=candidate.email,
+#             password=candidate.password,
+#             phone=candidate.phone,
+#             department=candidate.department,
+#             date_of_joining=date.today(),
+#             role="employee",  # 🔥 IMPORTANT
+#             # 🔥 ADD THESE (NEW FIELDS)
+#     aadhaar=candidate.aadhaar,
+#     pan=candidate.pan,
+#     city=candidate.city,
+#     skills=candidate.skills
+#         )
+
+#         candidate.delete()
+
+#         return Response({"message": "Approved", "employee_id": emp_id})
+
+#     except Exception as e:
+#         return Response({"error": str(e)})
+
+from datetime import date
+from app1.models import Employee, Candidate
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 @api_view(['POST'])
 def approve_candidate(request, id):
     try:
         candidate = Candidate.objects.get(id=id)
 
-        last_emp = Employee.objects.last()
+        # ✅ Get last valid employee_id
+        last_emp = Employee.objects.exclude(employee_id__isnull=True)\
+                                   .exclude(employee_id="")\
+                                   .order_by('-id').first()
 
-        if last_emp and last_emp.employee_id:
+        if last_emp and last_emp.employee_id.startswith("ARCE"):
             last_num = int(last_emp.employee_id.replace("ARCE", ""))
             new_num = last_num + 1
         else:
-            new_num = 499
+            new_num = 500   # start from 500
 
         emp_id = f"ARCE{new_num}"
+
+        print("Generated ID:", emp_id)  # 🔥 DEBUG
 
         Employee.objects.create(
             employee_id=emp_id,
@@ -126,21 +174,24 @@ def approve_candidate(request, id):
             phone=candidate.phone,
             department=candidate.department,
             date_of_joining=date.today(),
-            role="employee",  # 🔥 IMPORTANT
-            # 🔥 ADD THESE (NEW FIELDS)
-    aadhaar=candidate.aadhaar,
-    pan=candidate.pan,
-    city=candidate.city,
-    skills=candidate.skills
+            role="employee",
+
+            aadhaar=candidate.aadhaar,
+            pan=candidate.pan,
+            city=candidate.city,
+            skills=candidate.skills
         )
 
         candidate.delete()
 
-        return Response({"message": "Approved", "employee_id": emp_id})
+        return Response({
+            "message": "Approved",
+            "employee_id": emp_id
+        })
 
     except Exception as e:
+        print("ERROR:", str(e))  # 🔥 DEBUG
         return Response({"error": str(e)})
-
 
 # ✅ DASHBOARD
 @api_view(['GET'])
@@ -170,22 +221,59 @@ def dashboard(request):
 
 
 
+# @api_view(['GET'])
+# def list_employees(request):
+#     user_id = request.GET.get("user_id")
+
+#     # 🔥 IF user_id PRESENT → check role
+#     if user_id:
+#         emp = Employee.objects.get(id=user_id)
+
+#         # 👨‍💼 ADMIN → ALL DATA
+#         if emp.role == "admin":
+#             employees = Employee.objects.all()
+#         else:
+#             # 👤 USER → ONLY OWN DATA
+#             employees = Employee.objects.filter(id=user_id)
+
+#     # 🔥 IF NO user_id (ADMIN DIRECT CALL)
+#     else:
+#         employees = Employee.objects.all()
+
+#     return Response(list(employees.values(
+#         "id",
+#         "employee_id",
+#         "name",
+#         "email",
+#         "phone",
+#         "department",
+#         "date_of_joining",
+#         "role",       # ✅ ADD
+#         "aadhaar",    # ✅ ADD
+#         "pan",        # ✅ ADD
+#         "city",       # ✅ ADD
+#         "skills"      # ✅ ADD
+#     )))
+
+
 @api_view(['GET'])
 def list_employees(request):
+    emp_id = request.GET.get("employee_id")
     user_id = request.GET.get("user_id")
 
-    # 🔥 IF user_id PRESENT → check role
-    if user_id:
+    # 🔥 IF employee_id USED
+    if emp_id:
+        employees = Employee.objects.filter(employee_id=emp_id)
+
+    # 🔥 IF user_id USED
+    elif user_id:
         emp = Employee.objects.get(id=user_id)
 
-        # 👨‍💼 ADMIN → ALL DATA
         if emp.role == "admin":
             employees = Employee.objects.all()
         else:
-            # 👤 USER → ONLY OWN DATA
             employees = Employee.objects.filter(id=user_id)
 
-    # 🔥 IF NO user_id (ADMIN DIRECT CALL)
     else:
         employees = Employee.objects.all()
 
@@ -197,9 +285,9 @@ def list_employees(request):
         "phone",
         "department",
         "date_of_joining",
-        "role",       # ✅ ADD
-        "aadhaar",    # ✅ ADD
-        "pan",        # ✅ ADD
-        "city",       # ✅ ADD
-        "skills"      # ✅ ADD
+        "role",
+        "aadhaar",
+        "pan",
+        "city",
+        "skills"
     )))

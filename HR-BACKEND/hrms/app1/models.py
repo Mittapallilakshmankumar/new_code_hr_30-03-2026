@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.hashers import make_password   # ✅ ADD THIS ON TOP
 
 
 # ✅ Candidate Table
@@ -24,7 +25,9 @@ class Candidate(models.Model):
     experience = models.CharField(max_length=100, blank=True)
     source = models.CharField(max_length=100, blank=True)
     skills = models.CharField(max_length=255, blank=True)
-    department = models.CharField(max_length=100, blank=True)
+    # department = models.CharField(max_length=100, blank=True)
+    department = models.CharField(max_length=100, default="IT")  # dept
+
 
     photo = models.ImageField(upload_to="candidates/photos/", blank=True, null=True)
 
@@ -86,13 +89,31 @@ class Employee(models.Model):
     phone = models.CharField(max_length=15)
     department = models.CharField(max_length=100)
     date_of_joining = models.DateField()
-    role = models.CharField(max_length=20, default="employee")
+    # role = models.CharField(max_length=20, default="employee")
+    ROLE_CHOICES = [
+    ("hr", "HR"),
+    ("checker", "Checker"),
+    ("employee", "Employee"),
+    ]
+
+    role = models.CharField(
+    max_length=20,
+    choices=ROLE_CHOICES,
+    default="employee"
+    )
 
     # 🔥 ADD THESE (IMPORTANT)
     aadhaar = models.CharField(max_length=12, blank=True)
     pan = models.CharField(max_length=10, blank=True)
     city = models.CharField(max_length=100, blank=True)
     skills = models.CharField(max_length=255, blank=True)
+
+     # 🔥 ADD THIS FUNCTION (VERY IMPORTANT)
+    def save(self, *args, **kwargs):
+        if not self.password.startswith("pbkdf2_sha256"):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"{self.name} ({self.employee_id})"

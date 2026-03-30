@@ -39,10 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
      'corsheaders',
      'rest_framework',
+     'rest_framework_simplejwt',
     'app1',
       'attendance',
       'login',
-      'leave'
+      'leave',
+      'finance',#frined
+'common',#frined
+'accounts', #frined
 ]
 
 MIDDLEWARE = [
@@ -83,7 +87,7 @@ WSGI_APPLICATION = 'hrms.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hrms',
+        'NAME': 'client',
         'USER': 'postgres',
         'PASSWORD': '2001',   # your password
         'HOST': 'localhost',
@@ -138,3 +142,14 @@ CORS_ALLOWED_ORIGINS = [
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+AUTH_USER_MODEL = 'accounts.User'
+
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
