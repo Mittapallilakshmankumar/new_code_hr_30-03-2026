@@ -1,21 +1,45 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { listAdvances } from "../api/advanceApi";
-import { getAppConfigApi } from "../api/appConfigApi";
-import { listExpenses, uploadBill } from "../api/expenseApi";
+import { useAuth, useLoading } from "../components/AppProviders";
+import apiClient, {
+  DEFAULT_MAX_BILL_UPLOAD_BYTES,
+  STATUS,
+  emitDashboardRefresh,
+  formatCurrency,
+  getListData,
+} from "../components/appCore";
 import ContentCard from "../components/ContentCard";
 import Layout from "../components/Layout";
 import PageHero from "../components/PageHero";
 import StatusBadge from "../components/StatusBadge";
 import SummaryCard from "../components/SummaryCard";
-import { useLoading } from "../context/LoadingContext";
-import {
-  DEFAULT_MAX_BILL_UPLOAD_BYTES,
-  STATUS,
-  formatCurrency,
-} from "../utils/constants";
-import { emitDashboardRefresh } from "../utils/realtime";
-import { useAuth } from "../utils/session";
+
+async function listAdvances(params = {}) {
+  const response = await apiClient.get("advances/", { params });
+  return getListData(response.data);
+}
+
+async function getAppConfigApi() {
+  const response = await apiClient.get("auth/app-config/");
+  return response.data;
+}
+
+async function listExpenses(params = {}) {
+  const response = await apiClient.get("expenses/", { params });
+  return getListData(response.data);
+}
+
+async function uploadBill(id, billFile) {
+  const formData = new FormData();
+  formData.append("bill_file", billFile);
+
+  const response = await apiClient.post(`expenses/${id}/upload-bill/`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+}
 
 function formatMegabytes(bytes) {
   return Math.max(1, Math.round(Number(bytes || 0) / (1024 * 1024)));

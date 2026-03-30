@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { listAdvances } from "../api/advanceApi";
+import apiClient, { ROLES, formatCurrency, getListData } from "../components/appCore";
+import { useAuth } from "../components/AppProviders";
 import ContentCard from "../components/ContentCard";
 import Layout from "../components/Layout";
 import PageHero from "../components/PageHero";
 import ExpenseTable from "../components/ExpenseTable";
 import SummaryCard from "../components/SummaryCard";
-import { ROLES, formatCurrency } from "../utils/constants";
-import { useAuth } from "../utils/session";
+
+async function listAdvances(params = {}) {
+  const response = await apiClient.get("advances/", { params });
+  return getListData(response.data);
+}
 
 export default function ActiveAdvancesPage() {
   const location = useLocation();

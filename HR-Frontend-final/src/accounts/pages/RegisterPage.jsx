@@ -1,5 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
-import { useAuth } from "../../utils/session";
+import { useAuth } from "../components/AppProviders";
 
 export default function RegisterPage() {
   const { isAuthenticated } = useAuth();

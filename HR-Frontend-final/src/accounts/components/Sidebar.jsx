@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { ROLES, SIDEBAR_SECTIONS, getDefaultRouteForRole } from "../utils/constants";
-import { useAuth } from "../utils/session";
+import { useAuth } from "./AppProviders";
+import { ROLES, SIDEBAR_SECTIONS, getDefaultRouteForRole } from "./appCore";
 
 function HomeIcon() {
   return (

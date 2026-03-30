@@ -1,16 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { buildAbsoluteUrl } from "../api/axios";
-import { listAdvances } from "../api/advanceApi";
-import { closeExpense, listExpenses } from "../api/expenseApi";
+import { useAuth } from "../components/AppProviders";
+import apiClient, {
+  STATUS,
+  buildAbsoluteUrl,
+  emitDashboardRefresh,
+  formatCurrency,
+  getListData,
+} from "../components/appCore";
 import ContentCard from "../components/ContentCard";
 import Layout from "../components/Layout";
 import PageHero from "../components/PageHero";
 import StatusBadge from "../components/StatusBadge";
 import SummaryCard from "../components/SummaryCard";
-import { STATUS, formatCurrency } from "../utils/constants";
-import { emitDashboardRefresh } from "../utils/realtime";
-import { useAuth } from "../utils/session";
+
+async function listAdvances(params = {}) {
+  const response = await apiClient.get("advances/", { params });
+  return getListData(response.data);
+}
+
+async function listExpenses(params = {}) {
+  const response = await apiClient.get("expenses/", { params });
+  return getListData(response.data);
+}
+
+async function closeExpense(id) {
+  const response = await apiClient.post(`expenses/${id}/close/`);
+  return response.data;
+}
 
 function VerificationGuide() {
   return (

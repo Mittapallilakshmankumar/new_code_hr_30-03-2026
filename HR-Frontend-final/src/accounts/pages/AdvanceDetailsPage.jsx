@@ -1,12 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getAdvance, getAdvanceLedger } from "../api/advanceApi";
-import { listExpenses } from "../api/expenseApi";
+import { useAuth } from "../components/AppProviders";
+import apiClient, { formatCurrency, getListData } from "../components/appCore";
 import ContentCard from "../components/ContentCard";
 import Layout from "../components/Layout";
 import StatusBadge from "../components/StatusBadge";
-import { formatCurrency } from "../utils/constants";
-import { useAuth } from "../utils/session";
+
+async function getAdvance(id) {
+  const response = await apiClient.get(`advances/${id}/`);
+  return response.data;
+}
+
+async function getAdvanceLedger(id) {
+  const response = await apiClient.get(`advances/${id}/ledger/`);
+  return response.data;
+}
+
+async function listExpenses(params = {}) {
+  const response = await apiClient.get("expenses/", { params });
+  return getListData(response.data);
+}
 
 function Field({ label, value }) {
   return (

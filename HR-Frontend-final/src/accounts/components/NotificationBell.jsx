@@ -1,14 +1,73 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  getUnreadNotificationCount,
-  listNotifications,
-  markAllNotificationsRead,
-  markNotificationRead,
-} from "../api/notificationApi";
-import usePolling from "../hooks/usePolling";
-import { DASHBOARD_REFRESH_EVENT, emitDashboardRefresh } from "../utils/realtime";
-import { useAuth } from "../utils/session";
+import { useAuth } from "./AppProviders";
+import apiClient, {
+  DASHBOARD_REFRESH_EVENT,
+  emitDashboardRefresh,
+  getListData,
+} from "./appCore";
+
+async function listNotifications(params = {}) {
+  const response = await apiClient.get("notifications/", { params });
+  return {
+    items: getListData(response.data),
+    count: response.data?.count || 0,
+    next: response.data?.next || null,
+    previous: response.data?.previous || null,
+  };
+}
+
+async function getUnreadNotificationCount() {
+  const response = await apiClient.get("notifications/unread-count/");
+  return response.data.unread_count || 0;
+}
+
+async function markNotificationRead(id) {
+  const response = await apiClient.patch(`notifications/${id}/read/`);
+  return response.data;
+}
+
+async function markAllNotificationsRead() {
+  const response = await apiClient.patch("notifications/mark-all-read/");
+  return response.data;
+}
+
+function usePolling(callback, intervalMs, enabled = true) {
+  const callbackRef = useRef(callback);
+  const runningRef = useRef(false);
+
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    if (!enabled || !intervalMs) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    async function tick() {
+      if (runningRef.current || cancelled) {
+        return;
+      }
+
+      runningRef.current = true;
+      try {
+        await callbackRef.current();
+      } finally {
+        runningRef.current = false;
+      }
+    }
+
+    const intervalId = window.setInterval(tick, intervalMs);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [enabled, intervalMs]);
+}
 
 function timeAgo(value) {
   if (!value) {

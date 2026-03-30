@@ -1,14 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { createAdvance } from "../api/advanceApi";
-import { listUsersApi } from "../api/authApi";
+import { useAuth, useLoading } from "../components/AppProviders";
+import apiClient, { emitDashboardRefresh, formatCurrency } from "../components/appCore";
 import ContentCard from "../components/ContentCard";
 import Layout from "../components/Layout";
 import PageHero from "../components/PageHero";
-import { useLoading } from "../context/LoadingContext";
-import { formatCurrency } from "../utils/constants";
-import { emitDashboardRefresh } from "../utils/realtime";
-import { useAuth } from "../utils/session";
+
+async function createAdvance(payload) {
+  const response = await apiClient.post("advances/", payload);
+  return response.data;
+}
+
+async function listUsersApi(params = {}) {
+  const response = await apiClient.get("auth/users/", { params });
+  return response.data;
+}
 
 function FormField({ label, children, required = false }) {
   return (

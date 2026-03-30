@@ -1,24 +1,32 @@
+
 import {
-  createElement,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { getCurrentUserApi, loginApi, logoutApi } from "../api/authApi";
-import {
+import FullScreenLoader from "./FullScreenLoader";
+import apiClient, {
   ACCESS_TOKEN_KEY,
   AUTH_LOGOUT_EVENT,
   REFRESH_TOKEN_KEY,
   clearAuthTokens,
   getAccessToken,
+  getDefaultRouteForRole,
   getRefreshToken,
   setAuthTokens,
-} from "../api/axios";
-import { getDefaultRouteForRole } from "./constants";
+} from "./appCore";
+
+const MIN_LOADER_VISIBLE_MS = 1200;
 
 const AuthContext = createContext(null);
+const LoadingContext = createContext({
+  loading: false,
+  setLoading: () => {},
+});
 
 function extractErrorMessage(error, fallback) {
   const responseData = error?.response?.data;
@@ -46,13 +54,25 @@ function extractErrorMessage(error, fallback) {
     }
   }
 
-  return (
-    error?.message ||
-    fallback
-  );
+  return error?.message || fallback;
 }
 
-export function AuthProvider({ children }) {
+async function loginApi(payload) {
+  const response = await apiClient.post("auth/login/", payload);
+  return response.data;
+}
+
+async function logoutApi(payload) {
+  const response = await apiClient.post("auth/logout/", payload);
+  return response.data;
+}
+
+async function getCurrentUserApi() {
+  const response = await apiClient.get("auth/me/");
+  return response.data;
+}
+
+function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
 
@@ -157,7 +177,85 @@ export function AuthProvider({ children }) {
     [user, isBootstrapping]
   );
 
-  return createElement(AuthContext.Provider, { value }, children);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function LoadingProvider({ children }) {
+  const [loading, setLoading] = useState(false);
+  const activeRequestsRef = useRef(0);
+  const visibleSinceRef = useRef(0);
+  const hideTimeoutRef = useRef(null);
+
+  const updateLoading = useCallback(
+    (nextLoading) => {
+      if (nextLoading) {
+        activeRequestsRef.current += 1;
+
+        if (hideTimeoutRef.current) {
+          window.clearTimeout(hideTimeoutRef.current);
+          hideTimeoutRef.current = null;
+        }
+
+        if (!loading) {
+          visibleSinceRef.current = Date.now();
+          setLoading(true);
+        }
+
+        return;
+      }
+
+      activeRequestsRef.current = Math.max(activeRequestsRef.current - 1, 0);
+
+      if (activeRequestsRef.current > 0) {
+        return;
+      }
+
+      const elapsed = Date.now() - visibleSinceRef.current;
+      const remaining = Math.max(MIN_LOADER_VISIBLE_MS - elapsed, 0);
+
+      if (remaining === 0) {
+        setLoading(false);
+        return;
+      }
+
+      hideTimeoutRef.current = window.setTimeout(() => {
+        setLoading(false);
+        hideTimeoutRef.current = null;
+      }, remaining);
+    },
+    [loading]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) {
+        window.clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      loading,
+      setLoading: updateLoading,
+    }),
+    [loading, updateLoading]
+  );
+
+  return (
+    <LoadingContext.Provider value={value}>
+      {children}
+      {loading ? <FullScreenLoader /> : null}
+    </LoadingContext.Provider>
+  );
+}
+
+export function AppProviders({ children }) {
+  return (
+    <AuthProvider>
+      <LoadingProvider>{children}</LoadingProvider>
+    </AuthProvider>
+  );
 }
 
 export function useAuth() {
@@ -170,7 +268,6 @@ export function useAuth() {
   return context;
 }
 
-export function useAppRole() {
-  const { role } = useAuth();
-  return [role, () => {}];
+export function useLoading() {
+  return useContext(LoadingContext);
 }

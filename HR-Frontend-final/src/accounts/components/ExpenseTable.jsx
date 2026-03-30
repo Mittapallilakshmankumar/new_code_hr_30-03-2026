@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { formatCurrency } from "../utils/constants";
+import { formatCurrency } from "./appCore";
 import StatusBadge from "./StatusBadge";
 
 function getExpenseId(row) {

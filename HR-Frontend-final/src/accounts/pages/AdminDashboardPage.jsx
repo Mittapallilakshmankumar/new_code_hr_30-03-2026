@@ -1,28 +1,76 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { listAdvances } from "../api/advanceApi";
-import {
-  createUserApi,
-  listUsersApi,
-  resetUserPasswordApi,
-  updateUserApi,
-} from "../api/authApi";
-import { getAdminDashboard } from "../api/dashboardApi";
-import {
-  approveExpense,
-  closeExpense,
-  listExpenses,
-  rejectExpense,
-  reviewExpense,
-} from "../api/expenseApi";
+import { useAuth } from "../components/AppProviders";
+import apiClient, {
+  ROLES,
+  STATUS,
+  formatCurrency,
+  getListData,
+  getRoleLabel,
+} from "../components/appCore";
 import ContentCard from "../components/ContentCard";
 import Layout from "../components/Layout";
 import PageHero from "../components/PageHero";
 import SearchToolbar from "../components/SearchToolbar";
 import StatusBadge from "../components/StatusBadge";
 import SummaryCard from "../components/SummaryCard";
-import { ROLES, STATUS, formatCurrency, getRoleLabel } from "../utils/constants";
-import { useAuth } from "../utils/session";
+
+async function listAdvances(params = {}) {
+  const response = await apiClient.get("advances/", { params });
+  return getListData(response.data);
+}
+
+async function listUsersApi(params = {}) {
+  const response = await apiClient.get("auth/users/", { params });
+  return response.data;
+}
+
+async function createUserApi(payload) {
+  const response = await apiClient.post("auth/users/", payload);
+  return response.data;
+}
+
+async function updateUserApi(userId, payload) {
+  const response = await apiClient.patch(`auth/users/${userId}/`, payload);
+  return response.data;
+}
+
+async function resetUserPasswordApi(userId, payload) {
+  const response = await apiClient.post(`auth/users/${userId}/reset-password/`, payload);
+  return response.data;
+}
+
+async function getAdminDashboard() {
+  const response = await apiClient.get("auth/admin/dashboard/");
+  return response.data;
+}
+
+async function listExpenses(params = {}) {
+  const response = await apiClient.get("expenses/", { params });
+  return getListData(response.data);
+}
+
+async function reviewExpense(id) {
+  const response = await apiClient.post(`expenses/${id}/review/`);
+  return response.data;
+}
+
+async function approveExpense(id) {
+  const response = await apiClient.post(`expenses/${id}/approve/`);
+  return response.data;
+}
+
+async function rejectExpense(id, rejectionReason) {
+  const response = await apiClient.post(`expenses/${id}/reject/`, {
+    rejection_reason: rejectionReason,
+  });
+  return response.data;
+}
+
+async function closeExpense(id) {
+  const response = await apiClient.post(`expenses/${id}/close/`);
+  return response.data;
+}
 
 const initialUserForm = {
   full_name: "",

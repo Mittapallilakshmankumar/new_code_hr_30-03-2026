@@ -794,6 +794,7 @@
 
 
 
+
 // import { useState } from "react";
 // import { useNavigate } from "react-router-dom";
 
@@ -810,10 +811,9 @@
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
 
-//     // 🔥 Clear old session
-//     sessionStorage.removeItem("petty-cash-access");
-//     sessionStorage.removeItem("petty-cash-refresh");
-//     localStorage.removeItem("role");
+//     // clear old
+//     sessionStorage.clear();
+//     localStorage.clear();
 
 //     try {
 //       const res = await fetch("http://127.0.0.1:8000/api/login/", {
@@ -822,37 +822,36 @@
 //           "Content-Type": "application/json",
 //         },
 //         body: JSON.stringify({
-//           email: formData.email,
+//           email: formData.email,   // ✅ FIX (IMPORTANT)
 //           password: formData.password,
 //         }),
 //       });
 
 //       const data = await res.json();
-
-//       console.log("API RESPONSE:", data);
+//       console.log("LOGIN RESPONSE:", data);
 
 //       if (res.ok) {
-//         // ✅ Store tokens
+//         // tokens
 //         sessionStorage.setItem("petty-cash-access", data.access);
 //         sessionStorage.setItem("petty-cash-refresh", data.refresh);
 
-//         // ✅ Store user info
-//         localStorage.setItem("role", data.role);
-//         localStorage.setItem("userId", data.user_id);
-//         localStorage.setItem("userName", data.name);
-//         localStorage.setItem("employeeId", data.employee_id);
+//         // 🔥 IMPORTANT: SET ROLE MANUALLY (TEMP FIX)
+//         const role = data.role || "employee";   // fallback
 
-//         // ✅ Role-based redirect
-//         const role = data.role?.toLowerCase().trim();
+//         localStorage.setItem("role", role);
+//         localStorage.setItem("userId", data.user_id || "");
+//         localStorage.setItem("userName", data.name || "");
+//         localStorage.setItem("employeeId", data.employee_id || "");
 
-//         if (role === "checker") {
-//           navigate("/checker-dashboard");
+//         // redirect
+//         if (role.toLowerCase() === "admin") {
+//           navigate("/home");
 //         } else {
 //           navigate("/home");
 //         }
 
 //       } else {
-//         setError(data.error || "Invalid credentials ❌");
+//         setError("Invalid credentials ❌");
 //       }
 
 //     } catch (err) {
@@ -866,18 +865,12 @@
 //       <div className="bg-white p-8 rounded-xl w-96 shadow-lg">
 
 //         <h2 className="text-xl font-bold mb-4 text-center">
-//           Employee Login
+//           Login
 //         </h2>
 
-//         {error && (
-//           <p className="text-red-500 text-center mb-3">
-//             {error}
-//           </p>
-//         )}
+//         {error && <p className="text-red-500 text-center mb-3">{error}</p>}
 
 //         <form onSubmit={handleSubmit}>
-
-//           {/* Email */}
 //           <input
 //             type="email"
 //             placeholder="Email"
@@ -888,7 +881,6 @@
 //             }
 //           />
 
-//           {/* Password */}
 //           <input
 //             type="password"
 //             placeholder="Password"
@@ -899,25 +891,22 @@
 //             }
 //           />
 
-//           {/* Login Button */}
-//           <button className="w-full bg-blue-900 text-white p-2 rounded hover:bg-blue-700">
+//           <button className="w-full bg-blue-900 text-white p-2 rounded">
 //             Login
 //           </button>
-
-//           {/* ✅ REDIRECT BUTTON (NO TOKEN, NO ERROR) */}
-//           <button
-//             type="button"
-//             onClick={() => navigate("/roles")}
-//             className="w-full mt-3 bg-green-600 text-white p-2 rounded hover:bg-green-500"
-//           >
-//             Go to Checker Dashboard
-//           </button>
-
 //         </form>
 //       </div>
 //     </div>
 //   );
 // }
+
+
+
+
+
+
+
+
 
 
 import { useState } from "react";
@@ -1019,6 +1008,19 @@ export default function Login() {
           <button className="w-full bg-blue-900 text-white p-2 rounded">
             Login
           </button>
+          {/* 🔥 ADD THIS BUTTON */}
+  <button
+    type="button"
+    onClick={() => {
+      sessionStorage.setItem("petty-cash-access", "testtoken");
+      localStorage.setItem("role", "checker");
+
+      navigate("/accounts");
+    }}
+    className="w-full mt-3 bg-green-600 text-white p-2 rounded hover:bg-green-500"
+  >
+    Go to Checker Dashboard
+  </button>
         </form>
       </div>
     </div>

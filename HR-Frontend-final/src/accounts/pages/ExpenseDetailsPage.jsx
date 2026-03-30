@@ -1,22 +1,53 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { buildAbsoluteUrl } from "../api/axios";
-import { getAdvanceLedger } from "../api/advanceApi";
-import {
-  approveExpense,
-  closeExpense,
-  getExpense,
-  rejectExpense,
-  reviewExpense,
-  submitExpense,
-} from "../api/expenseApi";
+import { useAuth, useLoading } from "../components/AppProviders";
+import apiClient, {
+  ROLES,
+  STATUS,
+  buildAbsoluteUrl,
+  emitDashboardRefresh,
+  formatCurrency,
+} from "../components/appCore";
 import ContentCard from "../components/ContentCard";
 import Layout from "../components/Layout";
 import StatusBadge from "../components/StatusBadge";
-import { useLoading } from "../context/LoadingContext";
-import { ROLES, STATUS, formatCurrency } from "../utils/constants";
-import { emitDashboardRefresh } from "../utils/realtime";
-import { useAuth } from "../utils/session";
+
+async function getAdvanceLedger(id) {
+  const response = await apiClient.get(`advances/${id}/ledger/`);
+  return response.data;
+}
+
+async function getExpense(id) {
+  const response = await apiClient.get(`expenses/${id}/`);
+  return response.data;
+}
+
+async function submitExpense(id) {
+  const response = await apiClient.post(`expenses/${id}/submit/`);
+  return response.data;
+}
+
+async function reviewExpense(id) {
+  const response = await apiClient.post(`expenses/${id}/review/`);
+  return response.data;
+}
+
+async function approveExpense(id) {
+  const response = await apiClient.post(`expenses/${id}/approve/`);
+  return response.data;
+}
+
+async function rejectExpense(id, rejectionReason) {
+  const response = await apiClient.post(`expenses/${id}/reject/`, {
+    rejection_reason: rejectionReason,
+  });
+  return response.data;
+}
+
+async function closeExpense(id) {
+  const response = await apiClient.post(`expenses/${id}/close/`);
+  return response.data;
+}
 
 function Field({ label, value }) {
   return (

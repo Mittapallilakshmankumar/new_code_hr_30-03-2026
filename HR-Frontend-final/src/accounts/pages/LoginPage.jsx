@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { getDefaultRouteForRole, getRoleLabel } from "../utils/constants";
-import { useAuth } from "../utils/session";
+import { useAuth } from "../components/AppProviders";
+import { getDefaultRouteForRole, getRoleLabel } from "../components/appCore";
 
 export default function LoginPage() {
   const location = useLocation();

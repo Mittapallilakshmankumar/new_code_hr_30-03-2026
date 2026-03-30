@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
-import { getReportsSummary } from "../api/dashboardApi";
-import { listExpenses } from "../api/expenseApi";
+import { useAuth } from "../components/AppProviders";
+import apiClient, { ROLES, formatCurrency, getListData } from "../components/appCore";
 import ContentCard from "../components/ContentCard";
 import Layout from "../components/Layout";
 import PageHero from "../components/PageHero";
 import ExpenseTable from "../components/ExpenseTable";
 import SummaryCard from "../components/SummaryCard";
-import { ROLES, formatCurrency } from "../utils/constants";
-import { useAuth } from "../utils/session";
+
+async function getReportsSummary() {
+  const response = await apiClient.get("dashboard/reports/");
+  return response.data;
+}
+
+async function listExpenses(params = {}) {
+  const response = await apiClient.get("expenses/", { params });
+  return getListData(response.data);
+}
 
 function MakerBalancesTable({ rows }) {
   return (
