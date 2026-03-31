@@ -25,26 +25,33 @@ export default function CandidatesList() {
   }, []);
 
   // ✅ APPROVE FUNCTION
-  const approveCandidate = async (id) => {
-    try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/app1/approve-candidate/${id}/`,
-        { method: "POST" }
-      );
+const approveCandidate = async (id) => {
+  try {
+    const res = await fetch(
+      `http://127.0.0.1:8000/api/app1/approve-candidate/${id}/`,
+      { method: "POST" }
+    );
 
-      const data = await res.json();
+    const data = await res.json();
 
-      // 🔥 SHOW EMP ID
-      alert("Approved ✅\nEMP ID: " + data.employee_id);
+    console.log("APPROVE RESPONSE:", data);
 
-      // 🔥 REMOVE ROW WITHOUT RELOAD
-      setCandidates(prev => prev.filter(item => item.id !== id));
-
-    } catch (err) {
-      console.log("Error:", err);
-      alert("Error approving candidate ❌");
+    // ❌ if error from backend
+    if (!res.ok || data.error) {
+      alert("Error ❌: " + (data.error || "Something failed"));
+      return;
     }
-  };
+
+    // ✅ success
+    alert("Approved ✅\nEMP ID: " + data.employee_id);
+
+    setCandidates(prev => prev.filter(item => item.id !== id));
+
+  } catch (err) {
+    console.log("Error:", err);
+    alert("Server error ❌");
+  }
+};
 
   return (
     <div className="bg-white rounded-2xl shadow p-4">
